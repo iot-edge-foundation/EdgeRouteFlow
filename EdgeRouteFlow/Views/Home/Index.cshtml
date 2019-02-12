@@ -1,0 +1,67 @@
+﻿@{
+    ViewData["Title"] = "Iot Edge module routes flow diagram";
+}
+
+<div class="text-center">
+    <h1 class="display-4">IoT Edge module routes flow diagram</h1>
+
+    <div id="input">
+        <label style="width:200px; display:inline-block">IoT Hub ConnectionString</label><input type="text" id="cs" style="width:600px; display:inline-block" /><br>
+        <label style="width:200px; display:inline-block">Device name</label><input type="text" id="dn" style="width:200px; display:inline-block" />
+        <label style="width:200px; display:inline-block"></label><input type="button" id="btnSubmit" value="Submit" style="width:195px; display:inline-block" />
+    </div>
+    <div id="error" style="display:none">
+        <label style="display:inline-block; color:crimson">Please check the IoT Hub connectionstring and IoT Edge device name.</label>
+    </div>
+    <div id="copy" style="display:none">
+        <label style="display:inline-block">Copyright 2019 @@svelde - <a href="http://blog.vandevelde-online.com">Blog</a></label>
+    </div>
+</div>
+
+<div style="height:2500px; width:2500px;" id="routingchart"></div>
+
+@section Scripts{
+    <link rel="stylesheet" href="~/js/jquery.flowchart.css">
+
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <script src="~/js/jquery.flowchart.js"></script>
+
+    <script language="javascript">
+        $(document).ready(function () {
+
+            $('#input').show();
+            $("#error").hide();
+            $("#copy").hide();
+
+            $('#btnSubmit').click(function () {
+                var cs = $('#cs').val();
+                var dn = $('#dn').val();
+
+                var dataToPost = { 'cs': cs, 'dn': dn };
+
+                $('#input').hide();
+                $('#error').hide();
+                $("#copy").hide();
+
+                $.post("Home/Flow", dataToPost)
+                    .done(function (response, status, jqxhr) {
+                        $("#copy").show();
+
+                        $('#routingchart').flowchart({
+                            data: response,
+                            multipleLinksOnInput: true,
+                            multipleLinksOnOutput: true,
+                            linkWidth: 3,
+                            distanceFromArrow: 4
+                        });
+                    })
+                    .fail(function (jqxhr, status, error) {
+                        $('#input').show();
+                        $("#error").show();
+                        $("#copy").hide();
+                    });
+            });
+        });
+    </script>
+}
