@@ -4,6 +4,8 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Devices;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
+using Microsoft.Azure.Devices.Shared;
 
 namespace EdgeRouteFlow.Controllers
 {
@@ -69,6 +71,35 @@ namespace EdgeRouteFlow.Controllers
         }
 
         [HttpPost]
+        public IActionResult FlowRoutes(FlowData a)
+        {
+            try
+            {
+                var jsonRoutes = JObject.Parse(a.routes);
+
+                var jsonRoutesList = jsonRoutes["routes"].ToList<JToken>();
+
+                var newJObject = new JObject();
+
+                foreach (var attribute in jsonRoutesList)
+                {
+                    newJObject.Add(attribute);
+                }
+
+                var twinCollection = new TwinCollection(newJObject, new JObject());
+
+                dynamic routes = twinCollection;
+
+                return CreatedAtRoute(routes);
+            }
+            catch (Exception)
+            {
+                Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+                return new JsonResult(null);
+            }
+        }
+
+        [HttpPost]
         public IActionResult Flow(FlowData a)
         {
             try
@@ -83,19 +114,24 @@ namespace EdgeRouteFlow.Controllers
 
                 var routes = desired["routes"];
 
-                List<Route> routeList = ExtractEdgeHubRoutes(routes);
-
-                List<Module> moduleList = ExtractRoutes(routeList);
-
-                var jsonObject = ConstructFlowChart(routeList, moduleList);
-
-                return new JsonResult(jsonObject);
+                return CreatedAtRoute(routes);
             }
             catch (Exception)
             {
                 Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
                 return new JsonResult(null);
             }
+        }
+
+        private static JsonResult CreatedAtRoute(dynamic routes)
+        {
+            List<Route> routeList = ExtractEdgeHubRoutes(routes);
+
+            List<Module> moduleList = ExtractRoutes(routeList);
+
+            var jsonObject = ConstructFlowChart(routeList, moduleList);
+
+            return new JsonResult(jsonObject);
         }
 
         private static List<Route> ExtractEdgeHubRoutes(dynamic routes)
@@ -252,5 +288,6 @@ namespace EdgeRouteFlow.Controllers
     {
         public string cs { get; set; }
         public string dn { get; set; }
+        public string routes { get; set; }
     }
 }

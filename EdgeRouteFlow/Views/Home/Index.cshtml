@@ -5,11 +5,23 @@
 <div class="text-center">
     <h1 class="display-4">IoT Edge module routes flow diagram</h1>
 
-    <div id="input">
-        <label style="width:200px; display:inline-block">IoT Hub ConnectionString</label><input type="text" id="cs" style="width:600px; display:inline-block" /><br>
-        <label style="width:200px; display:inline-block">Device name</label><input type="text" id="dn" style="width:200px; display:inline-block" />
-        <label style="width:200px; display:inline-block"></label><input type="button" id="btnSubmit" value="Submit" style="width:195px; display:inline-block" />
+    <div id="tabs">
+        <ul>
+            <li><a href="#tabs-1">Routes Json</a></li>
+            <li><a href="#tabs-2">Connection string</a></li>
+        </ul>
+
+        <div id="tabs-1">
+            <label style="width:100px; text-align: left; vertical-align: text-top; display:inline-block">Routes</label><textarea type="text" id="routes" style="width:900px; height:150px;"></textarea><br />
+            <label style="width:805px; display:inline-block"></label><input type="button" id="btnSubmitRoutes" value="Submit" style="width:195px; display:inline-block" />
+        </div>
+        <div id="tabs-2">
+            <label style="width:200px; text-align: left; display:inline-block">IoT Hub ConnectionString</label><input type="text" id="cs" style="width:800px; display:inline-block" /><br>
+            <label style="width:200px; text-align: left;display:inline-block">Device name</label><input type="text" id="dn" style="width:200px; display:inline-block" />
+            <label style="width:400px; display:inline-block"></label><input type="button" id="btnSubmit" value="Submit" style="width:195px; display:inline-block" />
+        </div>
     </div>
+
     <div id="error" style="display:none">
         <label style="display:inline-block; color:crimson">Please check the IoT Hub connectionstring and IoT Edge device name.</label>
     </div>
@@ -22,17 +34,49 @@
 
 @section Scripts{
     <link rel="stylesheet" href="~/js/jquery.flowchart.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/resources/demos/style.css">
 
-    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
-    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="~/js/jquery.flowchart.js"></script>
 
     <script language="javascript">
         $(document).ready(function () {
 
-            $('#input').show();
+            $("#tabs").tabs();
+
+            $('#tabs').show();
             $("#error").hide();
             $("#copy").hide();
+
+            $('#btnSubmitRoutes').click(function () {
+                var routes = $('#routes').val();
+
+                var dataToPost = { 'routes': routes };
+
+                $('#tabs').hide();
+                $('#error').hide();
+                $("#copy").hide();
+
+                $.post("Home/FlowRoutes", dataToPost)
+                    .done(function (response, status, jqxhr) {
+                        $("#copy").show();
+
+                        $('#routingchart').flowchart({
+                            data: response,
+                            multipleLinksOnInput: true,
+                            multipleLinksOnOutput: true,
+                            linkWidth: 3,
+                            distanceFromArrow: 4
+                        });
+                    })
+                    .fail(function (jqxhr, status, error) {
+                        $('#tabs').show();
+                        $("#error").show();
+                        $("#copy").hide();
+                    });
+            });
 
             $('#btnSubmit').click(function () {
                 var cs = $('#cs').val();
@@ -40,7 +84,7 @@
 
                 var dataToPost = { 'cs': cs, 'dn': dn };
 
-                $('#input').hide();
+                $('#tabs').hide();
                 $('#error').hide();
                 $("#copy").hide();
 
@@ -57,7 +101,7 @@
                         });
                     })
                     .fail(function (jqxhr, status, error) {
-                        $('#input').show();
+                        $('#tabs').show();
                         $("#error").show();
                         $("#copy").hide();
                     });
