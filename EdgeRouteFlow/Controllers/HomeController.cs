@@ -9,60 +9,6 @@ using Microsoft.Azure.Devices.Shared;
 
 namespace EdgeRouteFlow.Controllers
 {
-    public class Route
-    {
-        public string Id { get; set; }
-        public string ModuleFrom { get; set; }
-        public string ModuleTo { get; set; }
-        public string Input { get; set; }
-        public string Output { get; set; }
-    }
-
-    public class Module
-    {
-        public string Id { get; set; }
-        public string Title { get; set; }
-        public int Top { get; set; }
-        public int Left { get; set; }
-        public List<string> Inputs { get; private set; } = new List<string>();
-        public List<string> Outputs { get; private set; } = new List<string>();
-    }
-
-    public class JsonObject
-    {
-        public Dictionary<string, Operator> operators { get; private set; } = new Dictionary<string, Operator>();
-        public Dictionary<string, Link> links { get; private set; } = new Dictionary<string, Link>();
-    }
-
-    public class Operator
-    {
-        public Properties properties { get; private set; } = new Properties();
-        public int top { get; set; }
-        public int left { get; set; }
-    }
-
-    public class Properties
-    {
-        public string title { get; set; }
-
-        public Dictionary<string, InputOutput> inputs { get; private set; } = new Dictionary<string, InputOutput>();
-
-        public Dictionary<string, InputOutput> outputs { get; private set; } = new Dictionary<string, InputOutput>();
-    }
-
-    public class InputOutput
-    {
-        public string label { get; set; }
-    }
-
-    public class Link
-    {
-        public string fromOperator { get; set; }
-        public string toOperator { get; set; }
-        public string fromConnector { get; set; }
-        public string toConnector { get; set; }
-    }
-
     public class HomeController : Controller
     {
         public IActionResult Index()
@@ -71,11 +17,11 @@ namespace EdgeRouteFlow.Controllers
         }
 
         [HttpPost]
-        public IActionResult FlowRoutes(FlowData a)
+        public IActionResult FlowRoutes(FlowData flowData)
         {
             try
             {
-                var jsonRoutes = JObject.Parse(a.routes);
+                var jsonRoutes = JObject.Parse(flowData.routes);
 
                 var jsonRoutesList = jsonRoutes["routes"].ToList<JToken>();
 
@@ -100,15 +46,15 @@ namespace EdgeRouteFlow.Controllers
         }
 
         [HttpPost]
-        public IActionResult Flow(FlowData a)
+        public IActionResult Flow(FlowData flowData)
         {
             try
             {
-                var connectionString = a.cs;
+                var connectionString = flowData.cs;
 
                 var registryManager = RegistryManager.CreateFromConnectionString(connectionString);
 
-                var twin = registryManager.GetTwinAsync(a.dn, "$edgeHub").Result;
+                var twin = registryManager.GetTwinAsync(flowData.dn, "$edgeHub").Result;
 
                 var desired = twin.Properties.Desired;
 
@@ -282,12 +228,5 @@ namespace EdgeRouteFlow.Controllers
 
             return jsonObject;
         }
-    }
-
-    public class FlowData
-    {
-        public string cs { get; set; }
-        public string dn { get; set; }
-        public string routes { get; set; }
     }
 }
