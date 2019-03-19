@@ -18,4 +18,4 @@ This site does not save input data, it does not track users. There are no ads. J
 
 I activated HTTPS to project your connectionstrings.
 
-But still be smart, do never expose your production connection strings outside Azure!
+I you do not want to expose your production connection string outside Azure, you can use the option to submit only the Routes JSON.
