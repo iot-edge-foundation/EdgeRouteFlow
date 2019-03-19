@@ -23,11 +23,11 @@
     </div>
 
     <div id="error" style="display:none">
-        <label style="display:inline-block; color:crimson">Please check the IoT Hub connectionstring and IoT Edge device name.</label>
+        <label style="display:inline-block; color:crimson">Please check the routes JSON or IoT Hub connectionstring and IoT Edge device name.</label>
     </div>
-    <div id="copy" style="display:none">
-        <label style="display:inline-block">Sander van de Velde - <a href="https://github.com/sandervandevelde/EdgeRouteFlow/blob/master/LICENSE">MIT</a> - <a href="https://github.com/sandervandevelde/EdgeRouteFlow">GitHub</a> - <a href="http://blog.vandevelde-online.com">Blog</a> - <a href="https://twitter.com/svelde">Twitter</a> - <a href="https://www.linkedin.com/in/sandervandevelde/">LinkedIn</a></label>
-    </div>
+</div>
+<div id="copy" align="center">
+    <label style="display:inline-block">Sander van de Velde - <a target="_blank" rel="noopener noreferrer" href="https://github.com/sandervandevelde/EdgeRouteFlow/blob/master/LICENSE">MIT</a> - <a target="_blank" rel="noopener noreferrer" href="https://github.com/sandervandevelde/EdgeRouteFlow">GitHub</a> - <a target="_blank" rel="noopener noreferrer" href="https://sandervandevelde.wordpress.com/2019/01/25/visualize-azure-iot-edge-device-routes-as-a-flowchart-in-asp-net-mvc/">Blog</a> - <a target="_blank" rel="noopener noreferrer" href="https://twitter.com/svelde">Twitter</a> - <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/sandervandevelde/">LinkedIn</a></label>
 </div>
 
 <div style="height:2500px; width:2500px;" id="routingchart"></div>
@@ -47,7 +47,7 @@
             $("#tabs").tabs();
             $('#tabs').show();
             $("#error").hide();
-            $("#copy").hide();
+            //$("#copy").hide();
 
             $('#btnSubmitRoutes').click(function () {
                 var routes = $('#routes').val();
@@ -56,11 +56,11 @@
 
                 $('#tabs').hide();
                 $('#error').hide();
-                $("#copy").hide();
+                //$("#copy").hide();
 
                 $.post("Home/FlowRoutes", dataToPost)
                     .done(function (response, status, jqxhr) {
-                        $("#copy").show();
+                        //$("#copy").show();
 
                         $('#routingchart').flowchart({
                             data: response,
@@ -73,7 +73,7 @@
                     .fail(function (jqxhr, status, error) {
                         $('#tabs').show();
                         $("#error").show();
-                        $("#copy").hide();
+                        //$("#copy").hide();
                     });
             });
 
@@ -85,11 +85,11 @@
 
                 $('#tabs').hide();
                 $('#error').hide();
-                $("#copy").hide();
+                //$("#copy").hide();
 
                 $.post("Home/Flow", dataToPost)
                     .done(function (response, status, jqxhr) {
-                        $("#copy").show();
+                        //$("#copy").show();
 
                         $('#routingchart').flowchart({
                             data: response,
@@ -102,7 +102,7 @@
                     .fail(function (jqxhr, status, error) {
                         $('#tabs').show();
                         $("#error").show();
-                        $("#copy").hide();
+                        //$("#copy").hide();
                     });
             });
         });
