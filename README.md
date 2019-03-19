@@ -1,5 +1,12 @@
 # EdgeRouteFlow
-The code behind http://iotedgemoduleflow.azurewebsites.net
+
+The repository shows the code behind http://iotedgemoduleflow.azurewebsites.net
+
+## Flow diagram
+
+Azure IoT Edge module routes are hard to read. Why not show them in a diagram?
+
+
 
 ## Blog Post
 
