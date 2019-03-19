@@ -6,7 +6,7 @@ The repository shows the code behind http://iotedgemoduleflow.azurewebsites.net
 
 Azure IoT Edge module routes are hard to read. Why not show them in a diagram?
 
-
+![Flow diagram example](/images/fd.png)
 
 ## Blog Post
 
