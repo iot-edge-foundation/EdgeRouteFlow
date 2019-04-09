@@ -13,12 +13,14 @@
 
         <div id="tabs-1">
             <label style="width:100px; text-align: left; vertical-align: text-top; display:inline-block">Routes</label><textarea type="text" id="routes" style="width:900px; height:150px;"></textarea><br />
+            <label style="width:250px; text-align: left;display:inline-block">Extra modules(comma separated)</label><input type="text" id="em" style="width:750px; display:inline-block" /><br>
             <label style="width:805px; display:inline-block"></label><input type="button" id="btnSubmitRoutes" value="Submit" style="width:195px; display:inline-block" />
         </div>
         <div id="tabs-2">
-            <label style="width:200px; text-align: left; display:inline-block">IoT Hub ConnectionString</label><input type="text" id="cs" style="width:800px; display:inline-block" /><br>
-            <label style="width:200px; text-align: left;display:inline-block">Device name</label><input type="text" id="dn" style="width:200px; display:inline-block" />
-            <label style="width:400px; display:inline-block"></label><input type="button" id="btnSubmit" value="Submit" style="width:195px; display:inline-block" />
+            <label style="width:250px; text-align: left; display:inline-block">IoT Hub ConnectionString</label><input type="text" id="cs" style="width:750px; display:inline-block" /><br>
+            <label style="width:250px; text-align: left;display:inline-block">Extra modules(comma separated)</label><input type="text" id="em" style="width:750px; display:inline-block" /><br>
+            <label style="width:250px; text-align: left;display:inline-block">Device name</label><input type="text" id="dn" style="width:200px; display:inline-block" />
+            <label style="width:350px; display:inline-block"></label><input type="button" id="btnSubmit" value="Submit" style="width:195px; display:inline-block" />
         </div>
     </div>
 
@@ -51,8 +53,9 @@
 
             $('#btnSubmitRoutes').click(function () {
                 var routes = $('#routes').val();
+                var extraModules = $('#em').val();
 
-                var dataToPost = { 'routes': routes };
+                var dataToPost = { 'routes': routes, 'extraModules': extraModules };
 
                 $('#tabs').hide();
                 $('#error').hide();
@@ -80,8 +83,9 @@
             $('#btnSubmit').click(function () {
                 var cs = $('#cs').val();
                 var dn = $('#dn').val();
+                var extraModules = $('#em').val();
 
-                var dataToPost = { 'cs': cs, 'dn': dn };
+                var dataToPost = { 'cs': cs, 'dn': dn, 'extraModules': extraModules };
 
                 $('#tabs').hide();
                 $('#error').hide();

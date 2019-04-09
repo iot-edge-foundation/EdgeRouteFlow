@@ -36,7 +36,11 @@ namespace EdgeRouteFlow.Controllers
 
                 dynamic routes = twinCollection;
 
-                return CreatedAtRoute(routes);
+                var extraModules = !string.IsNullOrEmpty(flowData.extraModules)
+                                        ? flowData.extraModules.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                        : new string[0];
+
+                return CreatedAtRoute(routes, extraModules);
             }
             catch (Exception)
             {
@@ -60,7 +64,11 @@ namespace EdgeRouteFlow.Controllers
 
                 var routes = desired["routes"];
 
-                return CreatedAtRoute(routes);
+                var extraModules = !string.IsNullOrEmpty(flowData.extraModules)
+                        ? flowData.extraModules.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        : new string[0];
+
+                return CreatedAtRoute(routes, extraModules);
             }
             catch (Exception)
             {
@@ -69,11 +77,11 @@ namespace EdgeRouteFlow.Controllers
             }
         }
 
-        private static JsonResult CreatedAtRoute(dynamic routes)
+        private static JsonResult CreatedAtRoute(dynamic routes, string[] extraModules)
         {
             List<Route> routeList = ExtractEdgeHubRoutes(routes);
 
-            List<Module> moduleList = ExtractRoutes(routeList);
+            List<Module> moduleList = ExtractRoutes(routeList, extraModules);
 
             var jsonObject = ConstructFlowChart(routeList, moduleList);
 
@@ -128,7 +136,7 @@ namespace EdgeRouteFlow.Controllers
             return routeList;
         }
 
-        private static List<Module> ExtractRoutes(List<Route> routeList)
+        private static List<Module> ExtractRoutes(List<Route> routeList, string[] extraModules)
         {
             var modules = new List<Module>();
 
@@ -181,6 +189,26 @@ namespace EdgeRouteFlow.Controllers
                 if (!moduleTo.Inputs.Any(x => x == Convert.ToString(route.Input)))
                 {
                     moduleTo.Inputs.Add(Convert.ToString(route.Input));
+                }
+            }
+
+            if (extraModules != null)
+            {
+                foreach(var em in extraModules)
+                {
+                    var extraModule =
+                      new Module
+                      {
+                          Id = em,
+                          Title = em,
+                          Top = topIndex,
+                          Left = leftIndex,
+                      };
+
+                    modules.Add(extraModule);
+
+                    topIndex = topIndex + 100;
+                    leftIndex = leftIndex + 100;
                 }
             }
 

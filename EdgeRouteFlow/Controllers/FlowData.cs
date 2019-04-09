@@ -5,5 +5,6 @@
         public string cs { get; set; }
         public string dn { get; set; }
         public string routes { get; set; }
+        public string extraModules { get; set; }
     }
 }
