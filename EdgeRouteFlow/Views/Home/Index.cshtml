@@ -49,7 +49,6 @@
             $("#tabs").tabs();
             $('#tabs').show();
             $("#error").hide();
-            //$("#copy").hide();
 
             $('#btnSubmitRoutes').click(function () {
                 var routes = $('#routes').val();
@@ -59,11 +58,9 @@
 
                 $('#tabs').hide();
                 $('#error').hide();
-                //$("#copy").hide();
 
                 $.post("Home/FlowRoutes", dataToPost)
                     .done(function (response, status, jqxhr) {
-                        //$("#copy").show();
 
                         $('#routingchart').flowchart({
                             data: response,
@@ -76,7 +73,6 @@
                     .fail(function (jqxhr, status, error) {
                         $('#tabs').show();
                         $("#error").show();
-                        //$("#copy").hide();
                     });
             });
 
@@ -89,11 +85,9 @@
 
                 $('#tabs').hide();
                 $('#error').hide();
-                //$("#copy").hide();
 
                 $.post("Home/Flow", dataToPost)
                     .done(function (response, status, jqxhr) {
-                        //$("#copy").show();
 
                         $('#routingchart').flowchart({
                             data: response,
@@ -106,7 +100,6 @@
                     .fail(function (jqxhr, status, error) {
                         $('#tabs').show();
                         $("#error").show();
-                        //$("#copy").hide();
                     });
             });
         });
