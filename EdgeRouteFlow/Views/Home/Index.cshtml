@@ -3,7 +3,7 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">IoT Edge module routes flow diagram</h1>
+    <h1 id="title" class="display-4">IoT Edge module routes flow diagram</h1>
 
     <div id="tabs">
         <ul>
@@ -32,7 +32,9 @@
     <label style="display:inline-block">Sander van de Velde - <a target="_blank" rel="noopener noreferrer" href="https://github.com/sandervandevelde/EdgeRouteFlow/blob/master/LICENSE">MIT</a> - <a target="_blank" rel="noopener noreferrer" href="https://github.com/sandervandevelde/EdgeRouteFlow">GitHub</a> - <a target="_blank" rel="noopener noreferrer" href="https://sandervandevelde.wordpress.com/2019/01/25/visualize-azure-iot-edge-device-routes-as-a-flowchart-in-asp-net-mvc/">Blog</a> - <a target="_blank" rel="noopener noreferrer" href="https://twitter.com/svelde">Twitter</a> - <a target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/in/sandervandevelde/">LinkedIn</a></label>
 </div>
 
-<div style="height:2500px; width:2500px;" id="routingchart"></div>
+<div id="host">
+    <div style="height:2500px; width:2500px;" id="routingchart"></div>
+</div>
 
 @section Scripts{
     <link rel="stylesheet" href="~/js/jquery.flowchart.css">
@@ -49,6 +51,13 @@
             $("#tabs").tabs();
             $('#tabs').show();
             $("#error").hide();
+
+            $('#title').click(function () {
+                $('#tabs').show();
+                $("#error").hide();
+
+                $('#host').html('<div style="height:2500px; width:2500px;" id="routingchart"></div>');
+            });
 
             $('#btnSubmitRoutes').click(function () {
                 var routes = $('#routes').val();

@@ -1,6 +1,6 @@
 $(function () {
-// the widget definition, where "custom" is the namespace,
-// "colorize" the widget name
+    // the widget definition, where "custom" is the namespace,
+    // "colorize" the widget name
     $.widget("flowchart.flowchart", {
         // default options
         options: {
@@ -47,10 +47,8 @@ $(function () {
                 return true;
             },
             onOperatorMoved: function (operatorId, position) {
-
             },
             onAfterChange: function (changeType) {
-
             }
         },
         data: null,
@@ -121,7 +119,6 @@ $(function () {
         },
 
         _initEvents: function () {
-
             var self = this;
 
             this.element.mousemove(function (e) {
@@ -135,7 +132,6 @@ $(function () {
                 var offset = $this.offset();
                 self._click((e.pageX - offset.left) / self.positionRatio, (e.pageY - offset.top) / self.positionRatio, e);
             });
-
 
             this.objs.layers.operators.on('pointerdown mousedown touchstart', '.flowchart-operator', function (e) {
                 e.stopImmediatePropagation();
@@ -177,7 +173,6 @@ $(function () {
             this.objs.layers.operators.on('mouseout', '.flowchart-operator', function (e) {
                 self._operatorMouseOut($(this).data('operator_id'));
             });
-
         },
 
         setData: function (data) {
@@ -292,7 +287,7 @@ $(function () {
             var width = parseInt($connector.css('border-top-width'));
             var y = (connectorOffset.top - elementOffset.top - 1) / this.positionRatio + parseInt($connector.css('border-left-width'));
 
-            return {x: x, width: width, y: y};
+            return { x: x, width: width, y: y };
         },
 
         getLinkMainColor: function (linkId) {
@@ -426,14 +421,12 @@ $(function () {
             var bezierToX = toX + 1;
             var bezierIntensity = Math.min(100, Math.max(Math.abs(bezierFromX - bezierToX) / 2, Math.abs(fromY - toY)));
 
-
             linkData.internal.els.path.setAttribute("d", 'M' + bezierFromX + ',' + (fromY) + ' C' + (fromX + offsetFromX + distanceFromArrow + bezierIntensity) + ',' + fromY + ' ' + (toX - bezierIntensity) + ',' + toY + ' ' + bezierToX + ',' + toY);
 
             linkData.internal.els.rect.setAttribute("x", fromX);
             linkData.internal.els.rect.setAttribute("y", fromY - this.options.linkWidth / 2);
             linkData.internal.els.rect.setAttribute("width", offsetFromX + distanceFromArrow + 1);
             linkData.internal.els.rect.setAttribute("height", this.options.linkWidth);
-
         },
 
         getOperatorCompleteData: function (operatorData) {
@@ -586,7 +579,7 @@ $(function () {
             }
 
             fullElement.operator.appendTo(this.objs.layers.operators);
-            fullElement.operator.css({top: operatorData.top, left: operatorData.left});
+            fullElement.operator.css({ top: operatorData.top, left: operatorData.left });
             fullElement.operator.data('operator_id', operatorId);
 
             this.data.operators[operatorId] = operatorData;
@@ -601,7 +594,7 @@ $(function () {
             function operatorChangedPosition(operator_id, pos) {
                 operatorData.top = pos.top;
                 operatorData.left = pos.left;
-                
+
                 for (var linkId in self.data.links) {
                     if (self.data.links.hasOwnProperty(linkId)) {
                         var linkData = self.data.links[linkId];
@@ -635,16 +628,16 @@ $(function () {
                             var elementOffset = self.element.offset();
                             ui.position.left = Math.round(((e.pageX - elementOffset.left) / self.positionRatio - pointerX) / grid) * grid;
                             ui.position.top = Math.round(((e.pageY - elementOffset.top) / self.positionRatio - pointerY) / grid) * grid;
-                            
+
                             if (!operatorData.internal.properties.uncontained) {
                                 var $this = $(this);
                                 ui.position.left = Math.min(Math.max(ui.position.left, 0), self.element.width() - $this.outerWidth());
                                 ui.position.top = Math.min(Math.max(ui.position.top, 0), self.element.height() - $this.outerHeight());
                             }
-                            
+
                             ui.offset.left = Math.round(ui.position.left + elementOffset.left);
                             ui.offset.top = Math.round(ui.position.top + elementOffset.top);
-                            fullElement.operator.css({left: ui.position.left, top: ui.position.top});
+                            fullElement.operator.css({ left: ui.position.left, top: ui.position.top });
                         }
                         operatorChangedPosition($(this).data('operator_id'), ui.position);
                     },
@@ -696,7 +689,7 @@ $(function () {
                 this._unsetTemporaryLink();
             }
         },
-        
+
         _unsetTemporaryLink: function () {
             this.lastOutputConnectorClicked = null;
             this.objs.layers.temporaryLink.hide();
@@ -741,12 +734,12 @@ $(function () {
         _addSelectedClass: function (operatorId) {
             this.data.operators[operatorId].internal.els.operator.addClass('selected');
         },
-        
-        callbackEvent: function(name, params) {
+
+        callbackEvent: function (name, params) {
             var cbName = 'on' + name.charAt(0).toUpperCase() + name.slice(1);
             var ret = this.options[cbName].apply(this, params);
             if (ret !== false) {
-                var returnHash = {'result': ret}
+                var returnHash = { 'result': ret }
                 this.element.trigger(name, params.concat([returnHash]));
                 ret = returnHash['result'];
             }
@@ -1009,7 +1002,7 @@ $(function () {
             this.redrawLinksLayer();
             this.callbackEvent('afterChange', ['operator_data_change']);
         },
-        
+
         doesOperatorExists: function (operatorId) {
             return typeof this.data.operators[operatorId] != 'undefined';
         },

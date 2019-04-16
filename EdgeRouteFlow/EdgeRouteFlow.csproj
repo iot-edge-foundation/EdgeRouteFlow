@@ -15,9 +15,6 @@
 
 
   <ItemGroup>
-    <Content Update="wwwroot\js\jquery-mousewheel-master.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Update="wwwroot\js\jquery.flowchart.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -25,9 +22,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Update="wwwroot\js\jquery.flowchart.min.css">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\js\jquery.flowchart.min.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Update="wwwroot\js\jquery.mousewheel.js">
