@@ -88,6 +88,12 @@ namespace EdgeRouteFlow.Controllers
             return new JsonResult(jsonObject);
         }
 
+        /// <summary>
+        /// modules/([A-Za-z0-9_-]+)[/outputs]{0,}/(.+?|\*)\b.*INTO.*modules/([A-Za-z0-9_-]+)/inputs/(.+?|\*)"
+        /// modules/([A-Za-z0-9_-]+)[/outputs]{0,}/(.+?|\*)\b.*INTO.*(\$upstream)
+        /// </summary>
+        /// <param name="routes"></param>
+        /// <returns></returns>
         private static List<Route> ExtractEdgeHubRoutes(dynamic routes)
         {
             var routeList = new List<Route>();
@@ -96,7 +102,7 @@ namespace EdgeRouteFlow.Controllers
             {
                 var key = r.Key;
                 string value = r.Value;
-                var regex1 = new Regex(@"modules/(\w+)[/outputs]{0,}/(.+?|\*)\b.*INTO.*modules/(\w+)/inputs/(.+?|\*)""", RegexOptions.IgnoreCase);
+                var regex1 = new Regex(@"modules/([A-Za-z0-9_-]+)[/outputs]{0,}/(.+?|\*)\b.*INTO.*modules/([A-Za-z0-9_-]+)/inputs/(.+?|\*)""", RegexOptions.IgnoreCase);
 
                 var match1 = regex1.Match(value);
 
@@ -114,7 +120,7 @@ namespace EdgeRouteFlow.Controllers
                         });
                 }
 
-                var regex2 = new Regex(@"modules/(\w+)[/outputs]{0,}/(.+?|\*)\b.*INTO.*(\$upstream)", RegexOptions.IgnoreCase);
+                var regex2 = new Regex(@"modules/([A-Za-z0-9_-]+)[/outputs]{0,}/(.+?|\*)\b.*INTO.*(\$upstream)", RegexOptions.IgnoreCase);
 
                 var match2 = regex2.Match(value);
 
@@ -194,7 +200,7 @@ namespace EdgeRouteFlow.Controllers
 
             if (extraModules != null)
             {
-                foreach(var em in extraModules)
+                foreach (var em in extraModules)
                 {
                     var extraModule =
                       new Module
