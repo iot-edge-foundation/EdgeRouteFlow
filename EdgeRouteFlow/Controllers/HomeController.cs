@@ -89,8 +89,23 @@ namespace EdgeRouteFlow.Controllers
         }
 
         /// <summary>
+        /// Tested with http://regexstorm.net/tester 
+        /// 
+        /// regular module to module:
         /// modules/([A-Za-z0-9_-]+)[/outputs]{0,}/(.+?|\*)\b.*INTO.*modules/([A-Za-z0-9_-]+)/inputs/(.+?|\*)"
+        /// gives: modulen name, output name, module name and input name
+        /// 
+        /// regular module to upstream:
         /// modules/([A-Za-z0-9_-]+)[/outputs]{0,}/(.+?|\*)\b.*INTO.*(\$upstream)
+        /// gives: modulen name, output name and $upstream
+        /// 
+        /// from all modules/all inputs to module:
+        /// messages\/([\*+])[A-Za-z0-9_()$\-\s\+\<\>]+INTO.*modules\/([A-Za-z0-9_-]+)\/inputs/(.+?|\*)"
+        /// gives: a *, module name and input name
+        ///
+        /// from all modules/all inputs to module:
+        /// messages\/([\*+])[A-Za-z0-9_()$\-\s\+\<\>]+INTO.*(\$upstream)
+        /// gives: a * and $upstream
         /// </summary>
         /// <param name="routes"></param>
         /// <returns></returns>
@@ -106,6 +121,7 @@ namespace EdgeRouteFlow.Controllers
 
                 var match1 = regex1.Match(value);
 
+                // four fields
                 if (match1.Success
                         && match1.Groups.Count > 4)
                 {
@@ -124,6 +140,7 @@ namespace EdgeRouteFlow.Controllers
 
                 var match2 = regex2.Match(value);
 
+                // three fields
                 if (match2.Success
                         && match2.Groups.Count > 3)
                 {
@@ -135,6 +152,44 @@ namespace EdgeRouteFlow.Controllers
                             Output = match2.Groups[2].Value,
                             ModuleTo = match2.Groups[3].Value,
                             Input = "upstream",
+                        });
+                }
+
+                var regex3 = new Regex(@"messages/([\*+])[A-Za-z0-9_()$\-\s\+\<\>]+INTO.*modules/([A-Za-z0-9_-]+)\/inputs/(.+?|\*)""", RegexOptions.IgnoreCase);
+
+                var match3 = regex3.Match(value);
+
+                // three fields
+                if (match3.Success
+                        && match3.Groups.Count > 3)
+                {
+                    routeList.Add(
+                        new Route
+                        {
+                            Id = r.Key,
+                            ModuleFrom = "$all modules",
+                            Output = match3.Groups[1].Value,
+                            ModuleTo = match3.Groups[2].Value,
+                            Input = match3.Groups[3].Value
+                        });
+                }
+
+                var regex4 = new Regex(@"messages/([\*+])[A-Za-z0-9_()$\-\s\+\<\>]+INTO.*(\$upstream)", RegexOptions.IgnoreCase);
+
+                var match4 = regex4.Match(value);
+
+                // two fields
+                if (match4.Success
+                        && match4.Groups.Count > 2)
+                {
+                    routeList.Add(
+                        new Route
+                        {
+                            Id = r.Key,
+                            ModuleFrom = "$all modules",
+                            Output = match4.Groups[1].Value,
+                            ModuleTo = match4.Groups[2].Value,
+                            Input = "upstream"
                         });
                 }
             }
