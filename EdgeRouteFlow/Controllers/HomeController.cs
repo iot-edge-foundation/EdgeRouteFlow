@@ -167,7 +167,7 @@ namespace EdgeRouteFlow.Controllers
                         new Route
                         {
                             Id = r.Key,
-                            ModuleFrom = "$all modules",
+                            ModuleFrom = "$messages",
                             Output = match3.Groups[1].Value,
                             ModuleTo = match3.Groups[2].Value,
                             Input = match3.Groups[3].Value
@@ -186,7 +186,7 @@ namespace EdgeRouteFlow.Controllers
                         new Route
                         {
                             Id = r.Key,
-                            ModuleFrom = "$all modules",
+                            ModuleFrom = "$messages",
                             Output = match4.Groups[1].Value,
                             ModuleTo = match4.Groups[2].Value,
                             Input = "upstream"
