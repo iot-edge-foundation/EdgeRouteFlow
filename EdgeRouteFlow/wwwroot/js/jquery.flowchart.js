@@ -1,6 +1,16 @@
-$(function () {
-    // the widget definition, where "custom" is the namespace,
-    // "colorize" the widget name
+if (!('remove' in Element.prototype)) {
+    Element.prototype.remove = function() {
+        if (this.parentNode) {
+            alert(this.innerHTML);
+            this.parentNode.removeChild(this);
+
+        }
+    };
+}
+
+jQuery(function ($) {
+// the widget definition, where "custom" is the namespace,
+// "colorize" the widget name
     $.widget("flowchart.flowchart", {
         // default options
         options: {
@@ -16,6 +26,7 @@ $(function () {
             multipleLinksOnOutput: false,
             multipleLinksOnInput: false,
             linkVerticalDecal: 0,
+            verticalConnection: false,
             onOperatorSelect: function (operatorId) {
                 return true;
             },
@@ -47,8 +58,10 @@ $(function () {
                 return true;
             },
             onOperatorMoved: function (operatorId, position) {
+
             },
             onAfterChange: function (changeType) {
+
             }
         },
         data: null,
@@ -73,6 +86,10 @@ $(function () {
             this._unitVariables();
 
             this.element.addClass('flowchart-container');
+
+            if (this.options.verticalConnection) {
+                this.element.addClass('flowchart-vertical');
+            }
 
             this.objs.layers.links = $('<svg class="flowchart-links-layer"></svg>');
             this.objs.layers.links.appendTo(this.element);
@@ -119,6 +136,7 @@ $(function () {
         },
 
         _initEvents: function () {
+
             var self = this;
 
             this.element.mousemove(function (e) {
@@ -132,6 +150,7 @@ $(function () {
                 var offset = $this.offset();
                 self._click((e.pageX - offset.left) / self.positionRatio, (e.pageY - offset.top) / self.positionRatio, e);
             });
+
 
             this.objs.layers.operators.on('pointerdown mousedown touchstart', '.flowchart-operator', function (e) {
                 e.stopImmediatePropagation();
@@ -173,6 +192,7 @@ $(function () {
             this.objs.layers.operators.on('mouseout', '.flowchart-operator', function (e) {
                 self._operatorMouseOut($(this).data('operator_id'));
             });
+
         },
 
         setData: function (data) {
@@ -227,11 +247,11 @@ $(function () {
                         var currentFromSubConnector = currentSubConnectors[0];
                         var currentToSubConnector = currentSubConnectors[1];
 
-                        if (!multipleLinksOnOutput && currentLink.fromOperator == linkData.fromOperator && currentLink.fromConnector == linkData.fromConnector && currentFromSubConnector == fromSubConnector) {
+                        if (!multipleLinksOnOutput && !this.data.operators[linkData.fromOperator].properties.outputs[linkData.fromConnector].multipleLinks && currentLink.fromOperator == linkData.fromOperator && currentLink.fromConnector == linkData.fromConnector && currentFromSubConnector == fromSubConnector) {
                             this.deleteLink(linkId2);
                             continue;
                         }
-                        if (!multipleLinksOnInput && currentLink.toOperator == linkData.toOperator && currentLink.toConnector == linkData.toConnector && currentToSubConnector == toSubConnector) {
+                        if (!multipleLinksOnInput && !this.data.operators[linkData.toOperator].properties.inputs[linkData.toConnector].multipleLinks && currentLink.toOperator == linkData.toOperator && currentLink.toConnector == linkData.toConnector && currentToSubConnector == toSubConnector) {
                             this.deleteLink(linkId2);
                         }
                     }
@@ -248,12 +268,29 @@ $(function () {
         },
 
         _autoCreateSubConnector: function (operator, connector, connectorType, subConnector) {
-            var connectorInfos = this.data.operators[operator].properties[connectorType][connector];
+            var connectorInfos = this.data.operators[operator].internal.properties[connectorType][connector];
             if (connectorInfos.multiple) {
                 var fromFullElement = this.data.operators[operator].internal.els;
                 var nbFromConnectors = this.data.operators[operator].internal.els.connectors[connector].length;
                 for (var i = nbFromConnectors; i < subConnector + 2; i++) {
                     this._createSubConnector(connector, connectorInfos, fromFullElement);
+                }
+            }
+        },
+
+        _refreshOperatorConnectors: function (operatorId) {
+            for (var linkId in this.data.links) {
+                if (this.data.links.hasOwnProperty(linkId)) {
+                    var linkData = this.data.links[linkId];
+                    if (linkData.fromOperator == operatorId || linkData.toOperator == operatorId)
+                    {
+                        var subConnectors = this._getSubConnectors(linkData);
+                        var fromSubConnector = subConnectors[0];
+                        var toSubConnector = subConnectors[1];
+
+                        this._autoCreateSubConnector(linkData.fromOperator, linkData.fromConnector, 'outputs', fromSubConnector);
+                        this._autoCreateSubConnector(linkData.toOperator, linkData.toConnector, 'inputs', toSubConnector);
+                    }
                 }
             }
         },
@@ -269,7 +306,11 @@ $(function () {
 
         _clearLinksLayer: function () {
             this.objs.layers.links.empty();
-            this.objs.layers.operators.find('.flowchart-operator-connector-small-arrow').css('border-left-color', 'transparent');
+            if (this.options.verticalConnection) {
+                this.objs.layers.operators.find('.flowchart-operator-connector-small-arrow').css('border-top-color', 'transparent');
+            } else {
+                this.objs.layers.operators.find('.flowchart-operator-connector-small-arrow').css('border-left-color', 'transparent');
+            }
         },
 
         _clearOperatorsLayer: function () {
@@ -284,10 +325,10 @@ $(function () {
             var elementOffset = this.element.offset();
 
             var x = (connectorOffset.left - elementOffset.left) / this.positionRatio;
-            var width = parseInt($connector.css('border-top-width'));
-            var y = (connectorOffset.top - elementOffset.top - 1) / this.positionRatio + parseInt($connector.css('border-left-width'));
+            var width = parseInt($connector.css('border-top-width'), 10);
+            var y = (connectorOffset.top - elementOffset.top - 1) / this.positionRatio + parseInt($connector.css('border-left-width'), 10);
 
-            return { x: x, width: width, y: y };
+            return {x: x, width: width, y: y};
         },
 
         getLinkMainColor: function (linkId) {
@@ -417,16 +458,29 @@ $(function () {
 
             linkData.internal.els.mask.setAttribute("points", fromX + ',' + (fromY - offsetFromX - distanceFromArrow) + ' ' + (fromX + offsetFromX + distanceFromArrow) + ',' + fromY + ' ' + fromX + ',' + (fromY + offsetFromX + distanceFromArrow));
 
-            var bezierFromX = (fromX + offsetFromX + distanceFromArrow);
-            var bezierToX = toX + 1;
-            var bezierIntensity = Math.min(100, Math.max(Math.abs(bezierFromX - bezierToX) / 2, Math.abs(fromY - toY)));
+            var bezierFromX, bezierToX, bezierIntensity;
 
-            linkData.internal.els.path.setAttribute("d", 'M' + bezierFromX + ',' + (fromY) + ' C' + (fromX + offsetFromX + distanceFromArrow + bezierIntensity) + ',' + fromY + ' ' + (toX - bezierIntensity) + ',' + toY + ' ' + bezierToX + ',' + toY);
+            if (this.options.verticalConnection) {
+                fromY = fromY - 10;
+                toY = toY - 10;
+                bezierFromX = (fromX + offsetFromX + distanceFromArrow - 3);
+                bezierToX = (toX + offsetFromX + distanceFromArrow - 3);
 
-            linkData.internal.els.rect.setAttribute("x", fromX);
+                bezierIntensity = Math.min(100, Math.max(Math.abs(bezierFromX - bezierToX) / 2, Math.abs(fromY - toY)));
+                linkData.internal.els.path.setAttribute("d", 'M' + bezierFromX + ',' + (fromY) + ' C' + bezierFromX + ',' + (fromY + bezierIntensity) + ' ' + bezierToX + ',' + (toY - bezierIntensity) + ' ' + bezierToX + ',' + toY);
+                linkData.internal.els.rect.setAttribute("x", fromX - 1 + this.options.linkWidth / 2);
+            } else {
+                bezierFromX = (fromX + offsetFromX + distanceFromArrow);
+                bezierToX = toX + 1;
+                bezierIntensity = Math.min(100, Math.max(Math.abs(bezierFromX - bezierToX) / 2, Math.abs(fromY - toY)));
+                linkData.internal.els.path.setAttribute("d", 'M' + bezierFromX + ',' + (fromY) + ' C' + (fromX + offsetFromX + distanceFromArrow + bezierIntensity) + ',' + fromY + ' ' + (toX - bezierIntensity) + ',' + toY + ' ' + bezierToX + ',' + toY);
+                linkData.internal.els.rect.setAttribute("x", fromX);
+            }
+
             linkData.internal.els.rect.setAttribute("y", fromY - this.options.linkWidth / 2);
             linkData.internal.els.rect.setAttribute("width", offsetFromX + distanceFromArrow + 1);
             linkData.internal.els.rect.setAttribute("height", this.options.linkWidth);
+
         },
 
         getOperatorCompleteData: function (operatorData) {
@@ -468,15 +522,26 @@ $(function () {
             $operator_title.html(infos.title);
             $operator_title.appendTo($operator);
 
+            var $operator_body = $('<div class="flowchart-operator-body"></div>');
+            $operator_body.html(infos.body);
+            if (infos.body) {
+                $operator_body.appendTo($operator);
+            }
+
             var $operator_inputs_outputs = $('<div class="flowchart-operator-inputs-outputs"></div>');
 
-            $operator_inputs_outputs.appendTo($operator);
-
             var $operator_inputs = $('<div class="flowchart-operator-inputs"></div>');
-            $operator_inputs.appendTo($operator_inputs_outputs);
 
             var $operator_outputs = $('<div class="flowchart-operator-outputs"></div>');
-            $operator_outputs.appendTo($operator_inputs_outputs);
+
+            if (this.options.verticalConnection) {
+                $operator_inputs.prependTo($operator);
+                $operator_outputs.appendTo($operator);
+            } else {
+                $operator_inputs_outputs.appendTo($operator);
+                $operator_inputs.appendTo($operator_inputs_outputs);
+                $operator_outputs.appendTo($operator_inputs_outputs);
+            }
 
             var self = this;
 
@@ -488,6 +553,7 @@ $(function () {
             var fullElement = {
                 operator: $operator,
                 title: $operator_title,
+                body: $operator_body,
                 connectorSets: connectorSets,
                 connectors: connectors,
                 connectorArrows: connectorArrows,
@@ -504,7 +570,13 @@ $(function () {
                 connectors[connectorKey] = [];
                 connectorSets[connectorKey] = $operator_connector_set;
 
-                self._createSubConnector(connectorKey, connectorInfos, fullElement);
+                if ($.isArray(connectorInfos.label)) {
+                    for (var i = 0; i < connectorInfos.label.length; i++) {
+                        self._createSubConnector(connectorKey, connectorInfos.label[i], fullElement);
+                    }
+                } else {
+                    self._createSubConnector(connectorKey, connectorInfos, fullElement);
+                }
             }
 
             for (var key_i in infos.inputs) {
@@ -579,7 +651,7 @@ $(function () {
             }
 
             fullElement.operator.appendTo(this.objs.layers.operators);
-            fullElement.operator.css({ top: operatorData.top, left: operatorData.left });
+            fullElement.operator.css({top: operatorData.top, left: operatorData.left});
             fullElement.operator.data('operator_id', operatorId);
 
             this.data.operators[operatorId] = operatorData;
@@ -594,7 +666,7 @@ $(function () {
             function operatorChangedPosition(operator_id, pos) {
                 operatorData.top = pos.top;
                 operatorData.left = pos.left;
-
+                
                 for (var linkId in self.data.links) {
                     if (self.data.links.hasOwnProperty(linkId)) {
                         var linkData = self.data.links[linkId];
@@ -612,15 +684,15 @@ $(function () {
                 var pointerY;
                 fullElement.operator.draggable({
                     containment: operatorData.internal.properties.uncontained ? false : this.element,
-                    handle: '.flowchart-operator-title',
+                    handle: '.flowchart-operator-title, .flowchart-operator-body',
                     start: function (e, ui) {
                         if (self.lastOutputConnectorClicked != null) {
                             e.preventDefault();
                             return;
                         }
                         var elementOffset = self.element.offset();
-                        pointerX = (e.pageX - elementOffset.left) / self.positionRatio - parseInt($(e.target).css('left'));
-                        pointerY = (e.pageY - elementOffset.top) / self.positionRatio - parseInt($(e.target).css('top'));
+                        pointerX = (e.pageX - elementOffset.left) / self.positionRatio - parseInt($(e.target).css('left'), 10);
+                        pointerY = (e.pageY - elementOffset.top) / self.positionRatio - parseInt($(e.target).css('top'), 10);
                     },
                     drag: function (e, ui) {
                         if (self.options.grid) {
@@ -628,16 +700,16 @@ $(function () {
                             var elementOffset = self.element.offset();
                             ui.position.left = Math.round(((e.pageX - elementOffset.left) / self.positionRatio - pointerX) / grid) * grid;
                             ui.position.top = Math.round(((e.pageY - elementOffset.top) / self.positionRatio - pointerY) / grid) * grid;
-
+                            
                             if (!operatorData.internal.properties.uncontained) {
                                 var $this = $(this);
                                 ui.position.left = Math.min(Math.max(ui.position.left, 0), self.element.width() - $this.outerWidth());
                                 ui.position.top = Math.min(Math.max(ui.position.top, 0), self.element.height() - $this.outerHeight());
                             }
-
+                            
                             ui.offset.left = Math.round(ui.position.left + elementOffset.left);
                             ui.offset.top = Math.round(ui.position.top + elementOffset.top);
-                            fullElement.operator.css({ left: ui.position.left, top: ui.position.top });
+                            fullElement.operator.css({left: ui.position.left, top: ui.position.top});
                         }
                         operatorChangedPosition($(this).data('operator_id'), ui.position);
                     },
@@ -689,7 +761,7 @@ $(function () {
                 this._unsetTemporaryLink();
             }
         },
-
+        
         _unsetTemporaryLink: function () {
             this.lastOutputConnectorClicked = null;
             this.objs.layers.temporaryLink.hide();
@@ -734,12 +806,12 @@ $(function () {
         _addSelectedClass: function (operatorId) {
             this.data.operators[operatorId].internal.els.operator.addClass('selected');
         },
-
-        callbackEvent: function (name, params) {
+        
+        callbackEvent: function(name, params) {
             var cbName = 'on' + name.charAt(0).toUpperCase() + name.slice(1);
             var ret = this.options[cbName].apply(this, params);
             if (ret !== false) {
-                var returnHash = { 'result': ret }
+                var returnHash = {'result': ret};
                 this.element.trigger(name, params.concat([returnHash]));
                 ret = returnHash['result'];
             }
@@ -808,8 +880,13 @@ $(function () {
             var linkData = this.data.links[linkId];
             linkData.internal.els.path.setAttribute('stroke', color);
             linkData.internal.els.rect.setAttribute('fill', color);
-            linkData.internal.els.fromSmallConnector.css('border-left-color', color);
-            linkData.internal.els.toSmallConnector.css('border-left-color', color);
+            if (this.options.verticalConnection) {
+                linkData.internal.els.fromSmallConnector.css('border-top-color', color);
+                linkData.internal.els.toSmallConnector.css('border-top-color', color);
+            } else {
+                linkData.internal.els.fromSmallConnector.css('border-left-color', color);
+                linkData.internal.els.toSmallConnector.css('border-left-color', color);
+            }
         },
 
         uncolorizeLink: function (linkId) {
@@ -894,7 +971,12 @@ $(function () {
             var fromConnector = linkData.fromConnector;
             var toOperator = linkData.toOperator;
             var toConnector = linkData.toConnector;
-            linkData.internal.els.overallGroup.remove();
+            var overallGroup = linkData.internal.els.overallGroup;
+            if (overallGroup.remove) {
+                overallGroup.remove();
+            } else {
+                overallGroup.parentNode.removeChild(overallGroup);
+            }
             delete this.data.links[linkId];
 
             this._cleanMultipleConnectors(fromOperator, fromConnector, 'from');
@@ -904,7 +986,7 @@ $(function () {
         },
 
         _cleanMultipleConnectors: function (operator, connector, linkFromTo) {
-            if (!this.data.operators[operator].properties[linkFromTo == 'from' ? 'outputs' : 'inputs'][connector].multiple) {
+            if (!this.data.operators[operator].internal.properties[linkFromTo == 'from' ? 'outputs' : 'inputs'][connector].multiple) {
                 return;
             }
 
@@ -972,6 +1054,10 @@ $(function () {
             return data;
         },
 
+        getDataRef: function () {
+            return this.data;
+        },
+
         setOperatorTitle: function (operatorId, title) {
             this.data.operators[operatorId].internal.els.title.html(title);
             if (typeof this.data.operators[operatorId].properties == 'undefined') {
@@ -982,8 +1068,22 @@ $(function () {
             this.callbackEvent('afterChange', ['operator_title_change']);
         },
 
+        setOperatorBody: function (operatorId, body) {
+            this.data.operators[operatorId].internal.els.body.html(body);
+            if (typeof this.data.operators[operatorId].properties == 'undefined') {
+                this.data.operators[operatorId].properties = {};
+            }
+            this.data.operators[operatorId].properties.body = body;
+            this._refreshInternalProperties(this.data.operators[operatorId]);
+            this.callbackEvent('afterChange', ['operator_body_change']);
+        },
+
         getOperatorTitle: function (operatorId) {
             return this.data.operators[operatorId].internal.properties.title;
+        },
+
+        getOperatorBody: function (operatorId) {
+            return this.data.operators[operatorId].internal.properties.body;
         },
 
         setOperatorData: function (operatorId, operatorData) {
@@ -999,10 +1099,11 @@ $(function () {
             }
             this._deleteOperator(operatorId, true);
             this.createOperator(operatorId, operatorData);
+            this._refreshOperatorConnectors(operatorId);
             this.redrawLinksLayer();
             this.callbackEvent('afterChange', ['operator_data_change']);
         },
-
+        
         doesOperatorExists: function (operatorId) {
             return typeof this.data.operators[operatorId] != 'undefined';
         },
@@ -1011,6 +1112,36 @@ $(function () {
             var data = $.extend(true, {}, this.data.operators[operatorId]);
             delete data.internal;
             return data;
+        },
+
+        getLinksFrom: function(operatorId) {
+            var result = [];
+
+            for (var linkId in this.data.links) {
+                if (this.data.links.hasOwnProperty(linkId)) {
+                    var linkData = this.data.links[linkId];
+                    if (linkData.fromOperator === operatorId) {
+                        result.push(linkData);
+                    }
+                }
+            }
+
+            return result;
+        },
+
+        getLinksTo: function(operatorId) {
+            var result = [];
+
+            for (var linkId in this.data.links) {
+                if (this.data.links.hasOwnProperty(linkId)) {
+                    var linkData = this.data.links[linkId];
+                    if (linkData.toOperator === operatorId) {
+                        result.push(linkData);
+                    }
+                }
+            }
+
+            return result;
         },
 
         getOperatorFullProperties: function (operatorData) {
